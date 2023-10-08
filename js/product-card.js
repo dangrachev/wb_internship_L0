@@ -131,12 +131,12 @@ function fillGoodsList(items) {
 
                 calculateAllCosts();
 
-                if (input_debitConfirm.checked) {
+                /*if (input_debitConfirm.checked) {
                     const items = getChosenItems();
 
                     // Общая сумма текстом в кнопке Заказать
                     btn_order.innerText = `Оплатить ${items.length > 0 ? getFormattedPrice(getTotalPrice(items)) + ' сом' : ''}`;
-                }
+                }*/
             }
         });
     });
@@ -349,6 +349,14 @@ function calculateAllCosts() {
 
     // Общая скидка
     totalInfo_discount.children[1].innerText = `- ${getFormattedPrice(calculateDiscount(curTotalSum, prevTotalSum))} сом`;
+
+    // Если чекбокс `списать оплату сразу` активирован
+    if (input_debitConfirm.checked) {
+        const items = getChosenItems();
+
+        // Общая сумма текстом в кнопке Заказать
+        btn_order.innerText = `Оплатить ${items.length > 0 ? getFormattedPrice(getTotalPrice(items)) + ' сом' : ''}`;
+    }
 }
 
 /**
