@@ -360,14 +360,14 @@ function getChosenItems() {
 function calculateAllCosts() {
     // Общая сумма всех товаров
     let curTotalSum = getTotalPrice(getChosenItems());
-    totalInfo_title.children[1].innerText = `${getFormattedPrice(curTotalSum)} сом`;
+    totalInfo_title.children[1].innerText = curTotalSum <= 0 ? '' : `${getFormattedPrice(curTotalSum)} сом`;
 
     // Общая сумма всех товаров без скидки
     let prevTotalSum = getTotalPrevPrice(getChosenItems());
-    totalInfo_no_discount.children[1].innerText = `${getFormattedPrice(prevTotalSum)} сом`;
+    totalInfo_no_discount.children[1].innerText = prevTotalSum <= 0 ? '' : `${getFormattedPrice(prevTotalSum)} сом`;
 
     // Общая скидка
-    totalInfo_discount.children[1].innerText = `- ${getFormattedPrice(calculateDiscount(curTotalSum, prevTotalSum))} сом`;
+    totalInfo_discount.children[1].innerText = (curTotalSum === 0 && prevTotalSum === 0) ? '' : `- ${getFormattedPrice(calculateDiscount(curTotalSum, prevTotalSum))} сом`;
 
     // Если чекбокс `списать оплату сразу` активирован
     if (input_debitConfirm.checked) {
