@@ -1,5 +1,5 @@
 const productsList = document.querySelector('#goods-list');
-const productCards = productsList.querySelectorAll('.items-list__item');
+const absentProductsList = document.querySelector('#out-of-stuff-list');
 
 const checkbox_wrapper = document.querySelector('.checkbox-wrapper');
 const checkboxes = document.querySelectorAll('.checkbox-input');

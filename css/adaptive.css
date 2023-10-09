@@ -497,7 +497,6 @@ calc(minVal[px] + (maxVal - minVal) * (100vw - 320px) / (1400 - 320))
 
     }
     .absent-item .item-info__title {
-
         /*обрезание строки*/
         -webkit-line-clamp: 2;
         display: -webkit-box;
@@ -714,3 +713,12 @@ calc(minVal[px] + (maxVal - minVal) * (100vw - 320px) / (1400 - 320))
         width: 45%;
     }
 }
+
+/*@media screen and (min-width: 860px) {
+    .absent-item.item-actions {
+        opacity: 0;
+    }
+    .absent-item:hover + .item-actions{
+        opacity: 1;
+    }
+}*/

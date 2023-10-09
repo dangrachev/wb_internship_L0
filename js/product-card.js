@@ -67,6 +67,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     fillGoodsList(productsMockData);
     fillDeliveryList(getDeliveringItemsData());
 
+    //fillAbsentProductsList(productsMockData);
+
     // Изменение размера шрифта цен взависимости от их длинны
     [...document.querySelectorAll('.price')].forEach(price => {
         if (price.textContent.length > 6) {
@@ -85,7 +87,7 @@ function fillGoodsList(items) {
     // Счетчик для каждой карточки товара + подсчет стоимости
     document.querySelectorAll('.counter__btn').forEach((btn, i)=> {
         // Логика счетчика
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', (e) => {
             const btnType = btn.dataset.btn_type;
             const counterInput = btn.parentElement.querySelector('.counter__value');
             const counterQuantity = counterInput.value;
@@ -96,10 +98,12 @@ function fillGoodsList(items) {
         });
 
         // Подсчет стоимости
-        btn.addEventListener('click', async () => {
+        btn.addEventListener('click', (e) => {
             // Элемент с ценой товара
             const curPriceElem = btn.closest('.item-actions').nextElementSibling.querySelector('.price');
             const prevPriceElem = btn.closest('.item-actions').nextElementSibling.querySelector('.item-price__prev').children[0];
+            const priceElemMobile = btn.closest('.item-content-wrapper').previousElementSibling.querySelector('.item-price_mobile');
+
 
             // Значение счетчика
             let counterQuantity = btn.parentElement.querySelector('.counter__value').value;
@@ -112,6 +116,7 @@ function fillGoodsList(items) {
                 let price = Math.floor(+counterQuantity * +itemCurPrice);
                 console.log(price);
                 curPriceElem.innerText = `${getFormattedPrice(price)}`;
+                priceElemMobile.children[0].children[0].innerText = `${getFormattedPrice(price)}`;
 
                 if (curPriceElem.innerText.length > 6) {
                     // Размер шрифта цены в зависимости от длины
@@ -121,22 +126,17 @@ function fillGoodsList(items) {
                 // Сумма конкретного товара без скидки
                 let prevPrice = Math.floor(+counterQuantity * +itemPrevPrice);
                 prevPriceElem.innerText = `${getFormattedPrice(prevPrice)}`;
+                priceElemMobile.children[1].children[0].innerText = `${getFormattedPrice(prevPrice)}`;
 
 
                 // Бейдж с колличеством товаров
-                /*delivery_chosenItems.forEach(item => {
+                /*delivery.querySelectorAll('.delivery__chosen-item').forEach(item => {
                     item.children[0].innerText = printProductsCountBadge(getTotalQuantity());
-                });
-                */
+                });*/
 
                 calculateAllCosts();
 
-                /*if (input_debitConfirm.checked) {
-                    const items = getChosenItems();
-
-                    // Общая сумма текстом в кнопке Заказать
-                    btn_order.innerText = `Оплатить ${items.length > 0 ? getFormattedPrice(getTotalPrice(items)) + ' сом' : ''}`;
-                }*/
+                fillDeliveryList(getDeliveringItemsData());
             }
         });
     });
@@ -166,7 +166,7 @@ function fillGoodsList(items) {
             fillDeliveryList(getDeliveringItemsData());
 
             // Бейдж с колличеством товаров
-            /*delivery_chosenItems.forEach(item => {
+            /*delivery.querySelectorAll('.delivery__chosen-item').forEach(item => {
                 item.children[0].innerText = printProductsCountBadge(getTotalQuantity());
             });*/
 
@@ -184,21 +184,39 @@ function fillGoodsList(items) {
 
     // Deleting buttons
     document.querySelectorAll('.actions__delete').forEach(btn => btn.addEventListener('click', (e) => {
-        const cardForDel = e.target.closest('.items-list__item');
-        console.log(cardForDel.dataset.id);
+        const itemForDelete = e.target.closest('.items-list__item');
+        console.log(itemForDelete);
 
-        productsMockData = productsMockData.filter(item => item.id !== cardForDel.dataset.id);
+        if (itemForDelete && itemForDelete.classList.contains('absent-item')) {
+            console.log('absent-item');
+            return;
+        } else if (e.target.closest('.form_radio-item')) {
+            const targetRadio = e.target.closest('.form_radio-item');
+            console.log('radio-item', targetRadio);
+            return;
+        } else {
+            productsMockData = productsMockData.filter(item => item.id !== itemForDelete.dataset.id);
+        }
         fillGoodsList(productsMockData);
 
         calculateAllCosts();
+        fillDeliveryList(getDeliveringItemsData());
     }));
 }
 
-function fillDeliveryList(data) {
+/*function fillAbsentProductsList(items) {
+    absentProductsList.innerHTML = '';
+    items.forEach(productData => {
+        absentProductsList.insertAdjacentHTML('beforeend', generateAbsentProducts(productData));
+    });
+
+}*/
+
+function fillDeliveryList(deliveryData) {
     deliveringItems.innerHTML = '';
 
-    data.date.forEach(date => {
-        deliveringItems.insertAdjacentHTML('beforeend', generateDeliveringItems(data, date))
+    deliveryData.forEach(data => {
+        deliveringItems.insertAdjacentHTML('beforeend', generateDeliveringItems(data))
     });
 }
 
@@ -322,6 +340,7 @@ function getChosenItems() {
             const curPrice = input.closest('.counter').dataset.cur_price;
             const prevPrice = input.closest('.counter').dataset.prev_price;
             console.log(curPrice);
+
             items.push({
                 cardID: checkbox.id,
                 quantity: input.value,
@@ -360,34 +379,75 @@ function calculateAllCosts() {
 }
 
 /**
- * Возвращает объект с информацией для блока delivery.
+ * Возвращает объект с информацией для блока доставки.
  * */
 function getDeliveringItemsData() {
     // Массив id отмеченных товаров и количество каждой позиции
     const items = getChosenItems();
 
     // Объект с фото выбранных товаров
-    const deliveryData = {
-        date: ['5—6 февраля', '7—8 февраля'],
-        items: []
-    }
+    const deliveryData = [];
 
-    // Достаем объект товара по id и добавляем src фото в массив
-    for (let i = 0; i < items.length; i++) {
-        const {img_src} = productsMockData.find(product => product.id === items[i].cardID);
+    if (items.length > 0) {
+        // Объект с товарами на конкретную дату
+        const data = {
+            date: '',
+            items: []
+        };
+        const leftQuantity = []; // здесь храним остатки товаров, у которых заданное кол-во больше порога
 
-        const item = {
-            src: img_src,
-            quantity: items[i].quantity
+        // Достаем объект товара по id и добавляем src фото в массив
+        for (let i = 0; i < items.length; i++) {
+            const {img_src} = productsMockData.find(product => product.id === items[i].cardID);
+
+            let item;
+            // Проверяем количество конкретного товара по ограничению
+            if (items[i].quantity <= 186) {
+                item = {
+                    src: img_src,
+                    quantity: items[i].quantity
+                }
+            } else {
+                item = {
+                    src: img_src,
+                    quantity: 186
+                }
+                // Вычисляем остаток и пушим в массив с остатками
+                leftQuantity.push({src: img_src, quantity: Math.abs(186 - items[i].quantity)});
+            }
+
+            console.log(item);
+            data.items.push(item);
         }
 
-        console.log(item)
-        deliveryData.items.push(item);
+        // Задаем дату доставки и пушим объект с датой и товарами в итоговый массив deliveryData
+        data.date = '5—6 февраля';
+        deliveryData.push(data);
+
+        // Если массив с остатками не пуст, формируем новый объект с товарами на следующую дату
+        if (leftQuantity.length > 0) {
+            const newData = {
+                date: '',
+                items: []
+            };
+            leftQuantity.forEach(item => {
+                newData.items.push(item);
+            });
+
+            // Достаем предыдущий объект с датой и товарами и берем у него дату
+            let prevDeliveryDate = deliveryData[deliveryData.length - 1].date;
+            prevDeliveryDate = prevDeliveryDate.match(/\d+/g); // Достаем из строки числа
+            //console.log(prevDeliveryDate[0], prevDeliveryDate[1]);
+
+            // Формируем дату для нового объекта с датой товарами на основе предыдущего (прибавляем 1 к числам)
+            newData.date = `${parseInt(prevDeliveryDate[0]) + 1}—${parseInt(prevDeliveryDate[1]) + 1} февраля`;
+
+            deliveryData.push(newData);
+        }
     }
 
     return deliveryData;
 }
-
 
 
 /**
@@ -421,7 +481,7 @@ function generateProductCard(cardInfo, currency = 'сом') {
                             
                             <h3 class="item-info__title">${cardInfo.title}</h3>
                             
-                            ${cardInfo.features && Object.keys(cardInfo.features).length > 0 ? `<div class= "item-info__features">
+                            ${cardInfo.features && Object.keys(cardInfo.features).length > 0 ? `<div class="item-info__features">
                                     ${cardInfo.features.color ? `<div class="features__color">Цвет: <span>${cardInfo.features.color}</span></div>` : ''}
                                     ${cardInfo.features.size ? `<div class="features__size">Размер: <span>${cardInfo.features.size}</span></div>` : ''}
                                     </div>` : ''}
@@ -492,12 +552,13 @@ function generateProductCard(cardInfo, currency = 'сом') {
          </div>`;
 }
 
+
 /**
  * Возвращает шаблон отмеченного товара для блока доставки.
  * */
-function generateDeliveringItems(data, date = '') {
+function generateDeliveringItems(data) {
     return `<div class="delivery__date-item">
-                <div class="delivery__date"><strong>${date}</strong></div>
+                <div class="delivery__date"><strong>${data.date}</strong></div>
 
                 <div class="delivery__chosen-items">
                     ${data.items.map(item => `<div class="delivery__chosen-item">
@@ -505,5 +566,49 @@ function generateDeliveringItems(data, date = '') {
                         <img src=${item.src} alt="">
                     </div>`).join(' ')}
                 </div>
-            </div>`
+            </div>`;
 }
+
+
+
+
+
+/*
+/!**
+ *  Взвращает шаблон карточки отсутствующего продукта.
+ * *!/
+function generateAbsentProducts(cardInfo) {
+    return `<div class="absent-item items-list__item">
+                <div class="item-info">
+                    <img class="item-info__img" src=${cardInfo.img_src} alt="Item image">
+
+                    <div class="item-info__desc">
+                        <h3 class="item-info__title">${cardInfo.title}</h3>
+
+                        ${cardInfo.features && Object.keys(cardInfo.features).length > 0 ? `<div class="item-info__features">
+                                    ${cardInfo.features.color ? `<div class="features__color">Цвет: <span>${cardInfo.features.color}</span></div>` : ''}
+                                    ${cardInfo.features.size ? `<div class="features__size">Размер: <span>${cardInfo.features.size}</span></div>` : ''}
+                                    </div>` : ''}
+                    </div>
+                </div>
+
+                <div class="item-actions">
+                    <div class="actions">
+                        <div class="actions__isFavorite">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="16" viewBox="0 0 20 16" fill="#000">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M3.03399 2.05857C2.26592 2.75224 1.76687 3.83284 1.99496 5.42928C2.22335 7.02783 3.26497 8.68522 4.80439 10.3478C6.25868 11.9184 8.10965 13.4437 9.99999 14.874C11.8903 13.4437 13.7413 11.9184 15.1956 10.3478C16.7351 8.68521 17.7767 7.02783 18.005 5.4293C18.2331 3.83285 17.734 2.75224 16.9659 2.05856C16.1767 1.34572 15.055 1 14 1C12.132 1 11.0924 2.08479 10.5177 2.68443C10.4581 2.7466 10.4035 2.80356 10.3535 2.85355C10.1583 3.04882 9.84169 3.04882 9.64643 2.85355C9.59644 2.80356 9.54185 2.7466 9.48227 2.68443C8.9076 2.08479 7.868 1 5.99999 1C4.94498 1 3.82328 1.34573 3.03399 2.05857ZM2.36374 1.31643C3.37372 0.404274 4.75205 0 5.99999 0C8.07126 0 9.34542 1.11257 9.99999 1.77862C10.6545 1.11257 11.9287 0 14 0C15.2479 0 16.6262 0.404275 17.6362 1.31644C18.6674 2.24776 19.2669 3.66715 18.995 5.5707C18.7233 7.47217 17.515 9.31479 15.9294 11.0272C14.3355 12.7486 12.3064 14.3952 10.3 15.9C10.1222 16.0333 9.87776 16.0333 9.69999 15.9C7.69356 14.3952 5.66446 12.7485 4.07063 11.0272C2.48506 9.31478 1.27668 7.47217 1.00501 5.57072C0.733043 3.66716 1.33253 2.24776 2.36374 1.31643Z" fill="black"/>
+                            </svg>
+                        </div>
+
+                        <div class="actions__delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="#000">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M2.5 5C2.5 4.72386 2.72386 4.5 3 4.5H17C17.2761 4.5 17.5 4.72386 17.5 5C17.5 5.27614 17.2761 5.5 17 5.5H3C2.72386 5.5 2.5 5.27614 2.5 5Z" fill="black"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M3.4584 4.5H16.5059L15.6411 15.6926C15.5405 16.9947 14.4546 18 13.1486 18H6.84639C5.54299 18 4.45829 16.9986 4.35435 15.6994L3.4584 4.5ZM4.5416 5.5L5.35117 15.6196C5.41353 16.3992 6.06435 17 6.84639 17H13.1486C13.9322 17 14.5837 16.3968 14.6441 15.6155L15.4256 5.5H4.5416Z" fill="black"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M13 5.5H7V3.46875C7 2.65758 7.65758 2 8.46875 2H11.5312C12.3424 2 13 2.65758 13 3.46875V5.5ZM8.46875 3C8.20987 3 8 3.20987 8 3.46875V4.5H12V3.46875C12 3.20987 11.7901 3 11.5312 3H8.46875Z" fill="black"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+}
+*/

@@ -275,3 +275,6 @@
 .absent-item .actions {
     margin-top: 0;
 }
+.absent-item:hover > .item-actions {
+    opacity: 1;
+}

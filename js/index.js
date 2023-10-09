@@ -41,24 +41,6 @@ btn_order.addEventListener('click' , () => {
 
 
 
-// Hover on absent product card
-const absentGoods = document.querySelectorAll('.absent-item');
-absentGoods.forEach(item => {
-    // console.log(item)
-    if (window.screen.width > 321) {
-        item.addEventListener('mouseover', (e) => {
-            const actionsEl = item.children.item(1);
-            actionsEl.style.opacity = '1';
-        });
-
-        item.addEventListener('mouseout', (e) => {
-            const actionsEl = item.children.item(1);
-            actionsEl.style.opacity = '0';
-        });
-    }
-});
-
-
 // Mobile navigation items
 navigation_items.forEach(item => {
     item.addEventListener('click', (e) => {
