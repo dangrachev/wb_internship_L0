@@ -402,7 +402,8 @@ function getDeliveringItemsData() {
 
             let item;
             // Проверяем количество конкретного товара по ограничению (в соответствии с макетом)
-            if (items[i].quantity <= 184) {
+            const quantityLimit = 184;
+            if (items[i].quantity <= quantityLimit) {
                 item = {
                     src: img_src,
                     quantity: items[i].quantity
@@ -410,10 +411,10 @@ function getDeliveringItemsData() {
             } else {
                 item = {
                     src: img_src,
-                    quantity: 184
+                    quantity: quantityLimit
                 }
                 // Вычисляем остаток и пушим в массив с остатками
-                leftQuantity.push({src: img_src, quantity: Math.abs(186 - items[i].quantity)});
+                leftQuantity.push({src: img_src, quantity: Math.abs(quantityLimit - items[i].quantity)});
             }
 
             console.log(item);
