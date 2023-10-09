@@ -401,8 +401,8 @@ function getDeliveringItemsData() {
             const {img_src} = productsMockData.find(product => product.id === items[i].cardID);
 
             let item;
-            // Проверяем количество конкретного товара по ограничению
-            if (items[i].quantity <= 186) {
+            // Проверяем количество конкретного товара по ограничению (в соответствии с макетом)
+            if (items[i].quantity <= 184) {
                 item = {
                     src: img_src,
                     quantity: items[i].quantity
@@ -410,7 +410,7 @@ function getDeliveringItemsData() {
             } else {
                 item = {
                     src: img_src,
-                    quantity: 186
+                    quantity: 184
                 }
                 // Вычисляем остаток и пушим в массив с остатками
                 leftQuantity.push({src: img_src, quantity: Math.abs(186 - items[i].quantity)});
