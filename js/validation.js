@@ -32,6 +32,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Не позволяет вводить буквы в инпут ИНН
+    input_inn.addEventListener('input', (e) => {
+        input_inn.value = input_inn.value.replace(/[^0-9]/g, '');
+    });    
+    
     form_inputs.forEach(input => {
         // Валидируем каждый инпут отдельно
         input.addEventListener('change', () => {
