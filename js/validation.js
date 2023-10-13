@@ -1,11 +1,13 @@
+import NODES from './variables.js';
+
 
 document.addEventListener('DOMContentLoaded', () => {
-    recipient_form.addEventListener('submit', async (e) => {
+    NODES.recipient_form.addEventListener('submit', (e) => {
         e.preventDefault();
 
         let error = formValidate(e.target);
 
-        const formData = new FormData(recipient_form);
+        const formData = new FormData(NODES.recipient_form);
         // Форматируем номер телефона
         formData.set('phone', clearPhoneNumber(formData.get('phone')));
 
@@ -20,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
             //recipient_form.reset();
         } else {
             // Если форма не заполнена или есть ошибки, произойдет скролл к форме
-
             /* Для мобильной версии
             const screenWidth = window.innerWidth;
             if (screenWidth <= 860) {
@@ -28,18 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }*/
 
             // Поставил скроллинг при любой ширине экрана
-            recipientForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            NODES.recipientForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 
     // Не позволяет вводить буквы в инпут ИНН
-    input_inn.addEventListener('input', (e) => {
-        input_inn.value = input_inn.value.replace(/[^0-9]/g, '');
-    });    
-    
-    form_inputs.forEach(input => {
+    NODES.input_inn.addEventListener('input', (e) => {
+        NODES.input_inn.value = NODES.input_inn.value.replace(/[^0-9]/g, '');
+    });
+
+    NODES.form_inputs.forEach(input => {
         // Валидируем каждый инпут отдельно
-        input.addEventListener('change', () => {
+        input.addEventListener('change', (e) => {
             hideError(input);
 
             // Проверка на пустоту инпута
@@ -53,11 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('email error');
                 }
             } else if (input.classList.contains('_phone')) {
+                // Валидация телефона
                 if (!phoneValidation(input)) {
                     showError(input, 'wrong');
                     console.log('phone error');
                 }
             } else if (input.classList.contains('_inn')) {
+                // Валидация ИНН
                 if (!innValidation(input)) {
                     showError(input, 'wrong');
                     console.log('inn error');

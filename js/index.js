@@ -1,3 +1,15 @@
+import './variables.js';
+import './mock-data';
+import './templates-generators';
+import './helpers.js';
+import './validation.js';
+import './product-card.js';
+import './modal-window.js';
+import NODES from "./variables.js";
+import {getChosenItems, getTotalPrice, getTotalQuantity} from "./product-card.js";
+import {getFormattedPrice, normalizePrice} from "./helpers.js";
+
+
 
 // Accordion
 document.querySelectorAll('.accordion-trigger').forEach((el) => {
@@ -14,24 +26,24 @@ document.querySelectorAll('.accordion-trigger').forEach((el) => {
         }
 
         // Меняем checkbox на инфу о количестве
-        checkbox_wrapper.classList.toggle('hidden');
-        quantity_info.classList.toggle('hidden');
-        quantity_info.innerText = `${getTotalQuantity()} товаров · ${getFormattedPrice(getTotalPrice())} сом`
+        NODES.checkbox_wrapper.classList.toggle('hidden');
+        NODES.quantity_info.classList.toggle('hidden');
+        NODES.quantity_info.innerText = `${getTotalQuantity()} товаров · ${getFormattedPrice(getTotalPrice())} сом`
     });
 });
 
 // Изменение текста кнопки Заказать
-input_debitConfirm.addEventListener('change', (e) => {
+NODES.input_debitConfirm.addEventListener('change', (e) => {
     if (e.target.checked) {
         const price = getFormattedPrice(getTotalPrice(getChosenItems()));
-        btn_order.innerText = normalizePrice(price) > 0 ? `Оплатить ${price} сом` : 'Оплатить';
+        NODES.btn_order.innerText = normalizePrice(price) > 0 ? `Оплатить ${price} сом` : 'Оплатить';
     } else {
-        btn_order.innerText = 'Заказать';
+        NODES.btn_order.innerText = 'Заказать';
     }
 });
 
 // Кнопка `заказать`
-btn_order.addEventListener('click' , () => {
+NODES.btn_order.addEventListener('click' , () => {
    const items = getChosenItems();
    if (items.length < 1) {
        alert('Выберите товар(ы) для оплаты');
@@ -42,7 +54,7 @@ btn_order.addEventListener('click' , () => {
 
 
 // Mobile navigation items
-navigation_items.forEach(item => {
+NODES.navigation_items.forEach(item => {
     item.addEventListener('click', (e) => {
         const parentNode = e.target.closest('.navigation__item');
         const svgPath = parentNode.querySelectorAll('path');
@@ -51,7 +63,7 @@ navigation_items.forEach(item => {
 
         parentNode.classList.toggle('navigation__item_active');
 
-        navigation_items.forEach(item => {
+        NODES.navigation_items.forEach(item => {
             if (item !== parentNode) {
                 if (item.classList.contains('navigation__item_active')) {
                     item.classList.remove('navigation__item_active');
@@ -70,35 +82,3 @@ navigation_items.forEach(item => {
 });
 
 
-
-/**
- * Отображает бейдж с количеством товаров
- * */
-function printProductsCountBadge(num, node) {
-    if (num > 1) {
-        node.children[0].classList.remove('hidden');
-        return num;
-    } else {
-        node.children[0].classList.add('hidden');
-    }
-}
-
-/**
- * Отображает количество товаров
- * */
-function printItemsCount(num) {
-    if (num > 0) {
-        cartQuantity.classList.remove('hidden');
-        return num;
-    } else {
-        cartQuantity.classList.add('hidden');
-    }
-}
-
-
-/**
- * Возвращает количество карточек товаров
- * */
-function getItemsQuantity() {
-    return document.querySelectorAll('[data-id]').length;
-}
